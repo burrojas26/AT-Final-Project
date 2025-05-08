@@ -5,29 +5,32 @@ import numpy as np
 
 
 def getPts(frame):
-  mpDraw = mp.solutions.drawing_utils
-  mpPose = mp.solutions.pose
-  pose = mpPose.Pose()
-  if frame.any():
-    imgRgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-    results = pose.process(imgRgb)
-  if results.pose_landmarks:
-      mpDraw.draw_landmarks(frame, results.pose_landmarks)
-      h, w, c = frame.shape
-      for id, loc in enumerate(results.pose_landmarks.landmark):
-          cX, cY = int(w * loc.x), int(loc.y * h)
-          if loc and id in [11, 13, 15, 23, 25, 27, 29]:
-              cv.circle(frame, (cX, cY), 5, (255, 0, 0), cv.FILLED)
-      pts = results.pose_landmarks.landmark
-  cv.imshow("Pose Estimate", frame)
-  cv.waitKey(5)
-  cv.destroyAllWindows()
-  return results.pose_landmarks
+    mpDraw = mp.solutions.drawing_utils
+    mpPose = mp.solutions.pose
+    pose = mpPose.Pose()
+    if frame.any():
+        imgRgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+        results = pose.process(imgRgb)
+    if results.pose_landmarks:
+        mpDraw.draw_landmarks(frame, results.pose_landmarks)
+        h, w, c = frame.shape
+        for id, loc in enumerate(results.pose_landmarks.landmark):
+            cX, cY = int(w * loc.x), int(loc.y * h)
+            if loc and id in [11, 13, 15, 23, 25, 27, 29]:
+                cv.circle(frame, (cX, cY), 5, (255, 0, 0), cv.FILLED)
+        pts = results.pose_landmarks.landmark
+    cv.imshow("Pose Estimate", frame)
+    cv.waitKey(10)
+    #cv.destroyAllWindows()
+    return results.pose_landmarks
+
 
 def getAngles(frame):
-  landmarks = getPts(frame)
-  angles = []
-  '''
+    landmarks = getPts(frame)
+    angles = []
+    for i in range(10):
+        angles.append(None)
+    '''
     Elbow Angle - shoulder - elbow - wrist
         11 - 13 - 15 - left
         12 - 14 - 16 - right
@@ -44,28 +47,30 @@ def getAngles(frame):
         25 - 27 - 31 - left
         26 - 28 - 32 - right
   '''
+    if landmarks:
+        with open("angles.txt", "r") as angleReference:
+            anglesLines = angleReference.readlines()
+        i = 0
+        for line in anglesLines:
+            if line[0].isdigit():
+                combo = line.split(" - ")
+                # Convert points to np arrays for easier math
+                point = landmarks.landmark
+                a = np.array([point[int(combo[0])].x, point[int(combo[0])].y, point[int(combo[0])].z])
+                b = np.array([point[int(combo[1])].x, point[int(combo[1])].y, point[int(combo[1])].z])
+                c = np.array([point[int(combo[2])].x, point[int(combo[2])].y, point[int(combo[2])].z])
 
-  with open("angles.txt", "r") as angleReference:
-      anglesLines = angleReference.readlines()
-  for line in anglesLines:
-      if line[0].isdigit():
-          combo = line.split(" - ")
-          # Convert points to np arrays for easier math
-          point = landmarks.landmark
-          a = np.array([point[int(combo[0])].x, point[int(combo[0])].y, point[int(combo[0])].z])
-          b = np.array([point[int(combo[1])].x, point[int(combo[1])].y, point[int(combo[1])].z])
-          c = np.array([point[int(combo[2])].x, point[int(combo[2])].y, point[int(combo[2])].z])
+                # Creating vectors
+                ba = a - b
+                bc = c - b
 
-          # Creating vectors
-          ba = a - b
-          bc = c - b
+                # Calculate angle based on vector formula
+                cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+                angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))  # clip avoids numerical errors
+                angles[i] = (np.degrees(angle))
+                i += 1
 
-          # Calculate angle based on vector formula
-          cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-          angle = np.arccos(np.clip(cosine_angle, -1.0, 1.0))  # clip avoids numerical errors
-          angles.append(np.degrees(angle))
-
-  return angles
+    return angles
 
 
 def makeData():
@@ -73,6 +78,7 @@ def makeData():
     currPath = os.getcwd()
     vidPath = os.path.join(currPath, "Edited_Videos")
     fileNames = os.listdir(vidPath)
+    print(fileNames)
     paths = []
     for filename in fileNames:
         paths.append(os.path.join(vidPath, filename))

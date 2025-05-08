@@ -4,19 +4,25 @@ import os
 
 def downloadOrig():
     # Open the links file
-    with open("links.txt", "r") as theLinks:
+    with open("links2.txt", "r") as theLinks:
         links = theLinks.read().split("\n")
 
     # Configuring ydl options
     ydl_opts = {
-        'format': 'bestvideo[height<=720]+bestaudio/best',
-        'outtmpl': '/Users/jasper/Desktop/ATFinal/AT-Final-Project/Dataset/Videos/%(title)s.%(ext)s'
+        'format': 'bestvideo[height<=720]',
+        'outtmpl': '/Users/jasper/Desktop/ATFinal/AT-Final-Project/Dataset/Videos/%(id)s.%(ext)s'
     }
 
     # download each video
     with ydl.YoutubeDL(ydl_opts) as yd:
         yd.download(links)
 
+def getDict():
+    with open("links2.txt", "r") as links:
+        keys = links.read().split("\n")
+    with open("times.txt", "r") as times:
+        values = times.read().split("\n")
+    return dict(zip(keys, values))
 
 
 def alterVids():
@@ -25,16 +31,18 @@ def alterVids():
     pathOut = "/Users/jasper/Desktop/ATFinal/AT-Final-Project/Dataset/Edited_Videos"
     fileNames = os.listdir(path)
     paths = []
-    for filename in fileNames:
-        paths.append(os.path.join(path, filename))
+    # for filename in fileNames:
+    #     paths.append(os.path.join(path, filename))
 
-    with open("times.txt", "r") as times:
-        timeStamps = times.readlines()
+    timesDict = getDict()
+    print(timesDict)
 
-    for i, path in enumerate(paths):
+
+
+    for i, filename in enumerate(fileNames):
         # Create capture object and split the start and end times for the current video
-        capture = cv.VideoCapture(path)
-        times = timeStamps[i].split(",")
+        capture = cv.VideoCapture(os.path.join(path, filename))
+        times = timesDict[filename[:11]].split(",")
         fps = capture.get(cv.CAP_PROP_FPS)
         # Calculate the start and end frames based on the times and fps
         start = (int(times[0][0]) * 60 + int(times[0][2:])) * fps
@@ -57,6 +65,7 @@ def alterVids():
         currAdd = 0
         # Number of frames in the edited version
         totalFrames = 0
+        print(path)
         while check:
             check, frame = capture.read()
             if not check:
@@ -68,6 +77,7 @@ def alterVids():
                 out.write(frame)
                 currAdd = 4
                 cv.imshow("frame", frame)
+                print(currFrame)
             elif currFrame > end:
                 cv.destroyAllWindows()
                 break
@@ -79,7 +89,6 @@ def alterVids():
 
 
 if __name__ == "__main__":
-    downloadOrig()
     alterVids()
 
 

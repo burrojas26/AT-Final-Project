@@ -6,6 +6,9 @@ A system to track and analyze exercise form during workouts
 5/1/25 - Started creating files to build dataset.
     The script will download the specified videos from youtube, reduce the frame rate, play each frame and gain user input on good or bad squat form.
 
+5/7/25 - continued work on building the dataset.
+    So far the dataset has been created using the youtube video clips I have found. I have less data for bad form than I would like, but I should be able to begin making the machine learning model with what I have. I will continue to add to the dataset as I proceed.
+
 
 ### Outline
 - Make small dataset using youtube videos on good vs bad squat form
