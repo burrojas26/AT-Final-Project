@@ -27,14 +27,11 @@ class PoseDetector:
             results = self.pose.process(imgRgb)
             return results
 
-    def showPose(self, color):
-        frame = self.getFrame()
-        results = self.getPts()
+    def showPose(self, color, pts, frame):
         # Allows for the changing of the color
         drawing_spec = self.mpDraw.DrawingSpec(thickness=5, circle_radius=5, color=color)
-        if results.pose_landmarks:
-            self.mpDraw.draw_landmarks(frame, results.pose_landmarks, self.mpPose.POSE_CONNECTIONS, drawing_spec, drawing_spec)
-            pts = results.pose_landmarks.landmark
+        if pts:
+            self.mpDraw.draw_landmarks(frame, pts, self.mpPose.POSE_CONNECTIONS, drawing_spec, drawing_spec)
         cv.imshow("Webcam", frame)
         cv.waitKey(2)
         cv.destroyAllWindows()
