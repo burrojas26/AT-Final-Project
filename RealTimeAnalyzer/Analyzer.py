@@ -13,45 +13,50 @@ def getPose():
         exit()
 
     angleCombos = angleAnalyzer.getCombos()
+    frameCount = 0
+    pose_color = (255, 255, 255)
+    pts = None
     while True:
         frame = poseDetector.getFrame()
         stop = time.time()
         print("Frame received: " + str((stop-start)*10**3))
         start = stop
-
-        # Get the key angles and the angles that effect form
-        anglesAndLandmarks = angleAnalyzer.getAngles(frame, angleCombos)
-        stop = time.time()
-        print("Angles received: " + str((stop - start) * 10 ** 3))
-        start = stop
-
-        angles = anglesAndLandmarks[0]
-        pts = anglesAndLandmarks[1]
-        angles_to_analyze = angles[4:]
-        end = False
-        # Ensure all the angles are measured
-        for angle in angles_to_analyze:
-            if angle is None:
-                end = True
-        if not end:
-            # Run the angles through the neural network
-            outcome = User().use(angles_to_analyze)
+        if frameCount % 2 == 0:
+            # Get the key angles and the angles that effect form
+            anglesAndLandmarks = angleAnalyzer.getAngles(frame, angleCombos, start)
             stop = time.time()
-            print("Outcome received: " + str((stop - start) * 10 ** 3))
+            print("Angles received: " + str((stop - start) * 10 ** 3))
             start = stop
 
-            # Change the color of the pose based on whether the form is good or bad
-            if outcome == 1:
-                pose_color = (0, 255, 0)
-            else:
-                pose_color = (0, 0, 255)
-            # Display the pose
+            angles = anglesAndLandmarks[0]
+            pts = anglesAndLandmarks[1]
+            angles_to_analyze = angles[4:]
+            end = False
+            # Ensure all the angles are measured
+            for angle in angles_to_analyze:
+                if angle is None:
+                    end = True
+            if not end:
+                # Run the angles through the neural network
+                outcome = User().use(angles_to_analyze)
+                stop = time.time()
+                print("Outcome received: " + str((stop - start) * 10 ** 3))
+                start = stop
+
+                # Change the color of the pose based on whether the form is good or bad
+                if outcome == 1:
+                    pose_color = (0, 255, 0)
+                else:
+                    pose_color = (0, 0, 255)
+                # Display the pose
+        if pts is not None:
             poseDetector.showPose(pose_color, pts, frame)
             stop = time.time()
             print("Pose displayed: " + str((stop - start) * 10 ** 3))
             start = stop
 
         start = time.time()
+        frameCount += 1
 
 
 if __name__ == "__main__":

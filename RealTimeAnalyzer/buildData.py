@@ -2,6 +2,7 @@ import cv2 as cv
 import os
 import mediapipe as mp
 import numpy as np
+import time
 
 class AngleAnalyzer:
 
@@ -26,8 +27,12 @@ class AngleAnalyzer:
             pts = results.pose_landmarks.landmark
         return results.pose_landmarks
 
-    def getAngles(self, frame, combos):
+    def getAngles(self, frame, combos, start):
+
         landmarks = self.getPts(frame)
+        stop = time.time()
+
+        print("retrived points" + str((stop-start)*10**3))
         angles = []
         for i in range(10):
             angles.append(None)
