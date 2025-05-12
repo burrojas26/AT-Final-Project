@@ -21,7 +21,7 @@ def getPose():
         stop = time.time()
         print("Frame received: " + str((stop-start)*10**3))
         start = stop
-        if frameCount % 2 == 0:
+        if frameCount % 1 == 0:
             # Get the key angles and the angles that effect form
             anglesAndLandmarks = angleAnalyzer.getAngles(frame, angleCombos, start)
             stop = time.time()
@@ -31,24 +31,27 @@ def getPose():
             angles = anglesAndLandmarks[0]
             pts = anglesAndLandmarks[1]
             angles_to_analyze = angles[4:]
-            end = False
-            # Ensure all the angles are measured
-            for angle in angles_to_analyze:
-                if angle is None:
-                    end = True
-            if not end:
-                # Run the angles through the neural network
-                outcome = User().use(angles_to_analyze)
-                stop = time.time()
-                print("Outcome received: " + str((stop - start) * 10 ** 3))
-                start = stop
+            if angles_to_analyze[0] and angles_to_analyze[1] >= 178:
+                pose_color = (255, 255, 255)
+            else:
+                end = False
+                # Ensure all the angles are measured
+                for angle in angles_to_analyze:
+                    if angle is None:
+                        end = True
+                if not end:
+                    # Run the angles through the neural network
+                    outcome = User().use(angles_to_analyze)
+                    stop = time.time()
+                    print("Outcome received: " + str((stop - start) * 10 ** 3))
+                    start = stop
 
-                # Change the color of the pose based on whether the form is good or bad
-                if outcome == 1:
-                    pose_color = (0, 255, 0)
-                else:
-                    pose_color = (0, 0, 255)
-                # Display the pose
+                    # Change the color of the pose based on whether the form is good or bad
+                    if outcome == 1:
+                        pose_color = (0, 255, 0)
+                    else:
+                        pose_color = (0, 0, 255)
+                    # Display the pose
         if pts is not None:
             poseDetector.showPose(pose_color, pts, frame)
             stop = time.time()

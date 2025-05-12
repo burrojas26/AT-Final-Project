@@ -5,6 +5,9 @@ import numpy as np
 import time
 
 class AngleAnalyzer:
+    mpDraw = mp.solutions.drawing_utils
+    mpPose = mp.solutions.pose
+    pose = mpPose.Pose(model_complexity=0)
 
     def getCombos(self):
         with open("angles.txt", "r") as angleReference:
@@ -17,12 +20,10 @@ class AngleAnalyzer:
         return combos
 
     def getPts(self, frame):
-        mpDraw = mp.solutions.drawing_utils
-        mpPose = mp.solutions.pose
-        pose = mpPose.Pose()
+
         if frame.any():
             imgRgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-            results = pose.process(imgRgb)
+            results = self.pose.process(imgRgb)
         if results.pose_landmarks:
             pts = results.pose_landmarks.landmark
         return results.pose_landmarks
